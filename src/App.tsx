@@ -1,6 +1,31 @@
-import { Container, Input, Row, Col, Card, CardBody, CardTitle, CardText, Button, CardFooter, ButtonGroup } from 'reactstrap';
+import { useEffect, useState } from 'react';
+import { Container, Input, Row, Col, Card, CardBody, CardTitle, Button, CardFooter, ButtonGroup } from 'reactstrap';
+import { getListRepo } from './services/github';
+
+interface DataTypes {
+  id: number,
+  name: string,
+  language: string,
+  html_url: string,
+  created_at: string,
+  updated_at: string,
+}
 
 function App() {
+
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    getData()
+  }, []);
+
+  const getData = async () => {
+    const response = await getListRepo({ sort: 'pushed' })
+    if (!response.error) {
+      setData(response.data)
+    }
+  }
+
   return (
     <Container className="py-5">
       <Row className="mb-3">
@@ -9,30 +34,30 @@ function App() {
         </Col>
       </Row>
       <Row>
-        {[...Array(4)].map((val, idx) => {
+        {data.length > 0 && data.map((val: DataTypes) => {
           return (
-            <Col md={6} className="mb-3" key={String(idx)}>
+            <Col md={6} className="mb-3" key={String(val.id)}>
               <Card>
                 <CardBody>
                   <CardTitle tag="h5" className="mb-3">
-                    Github-API
+                    {val.name}
                   </CardTitle>
-                  <CardText>
+                  <div className="card-text mb-3">
                     <Row>
                       <Col md={3}>
-                        Typescript
+                        {val.language}
                       </Col>
                       <Col md={9}>
-                        Updated 20 minutes ago
+                        {val.updated_at}
                       </Col>
                     </Row>
-                  </CardText>
-                  <Button>
+                  </div>
+                  <Button onClick={() => window.open(val.html_url)}>
                     Detail Repository
                   </Button>
                 </CardBody>
                 <CardFooter>
-                  Created 2021-10-16T20:09:14Z
+                  Created {val.created_at}
                 </CardFooter>
               </Card>
             </Col>
