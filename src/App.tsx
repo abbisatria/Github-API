@@ -39,7 +39,13 @@ function App() {
     const differenceInTime = new Date().getTime() - new Date(value.pushed_at).getTime();
     const differenceInDays = Math.round(differenceInTime / (1000 * 3600 * 24));
     if (differenceInDays === 0) {
-      return new Date().getHours() - new Date(value.pushed_at).getHours() === 0 ? `Updated ${new Date().getMinutes() - new Date(value.pushed_at).getMinutes()} minute ago` : `Updated ${new Date().getHours() - new Date(value.pushed_at).getHours()} hour ago`
+      if (new Date().getMinutes() - new Date(value.pushed_at).getMinutes() === 0) {
+        return `Updated ${new Date().getSeconds() - new Date(value.pushed_at).getSeconds()} seconds ago`
+      }
+      if (new Date().getHours() - new Date(value.pushed_at).getHours() === 0) {
+        return `Updated ${new Date().getMinutes() - new Date(value.pushed_at).getMinutes()} minutes ago`
+      }
+      return `Updated ${new Date().getHours() - new Date(value.pushed_at).getHours()} hours ago`
     } else if (differenceInDays < 31) {
       return `Updated ${new Date().getDate() - new Date(value.pushed_at).getDate()} days ago`
     } else {
