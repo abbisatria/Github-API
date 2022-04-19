@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Container, Input, Row, Col, Card, CardBody, CardTitle, Button, CardFooter, ButtonGroup } from 'reactstrap';
-import { getListRepo } from './services/github';
+import { getLanguage, getListRepo } from './services/github';
+import moment from 'moment';
 
 interface DataTypes {
   id: number,
@@ -8,7 +9,8 @@ interface DataTypes {
   language: string,
   html_url: string,
   created_at: string,
-  updated_at: string,
+  pushed_at: string,
+  languages_url: string,
 }
 
 function App() {
@@ -22,7 +24,26 @@ function App() {
   const getData = async () => {
     const response = await getListRepo({ sort: 'pushed' })
     if (!response.error) {
-      setData(response.data)
+      const result: any = await Promise.all(response.data.map(async (val: DataTypes) => {
+        if (!val.language) {
+          const language = await getLanguage(val.languages_url)
+          val.language = Object.keys(language.data)[0]
+        }
+        return val
+      }))
+      setData(result)
+    }
+  }
+
+  const updated = (value: DataTypes) => {
+    const differenceInTime = new Date().getTime() - new Date(value.pushed_at).getTime();
+    const differenceInDays = Math.round(differenceInTime / (1000 * 3600 * 24));
+    if (differenceInDays === 0) {
+      return new Date().getHours() - new Date(value.pushed_at).getHours() === 0 ? `Updated ${new Date().getMinutes() - new Date(value.pushed_at).getMinutes()} minute ago` : `Updated ${new Date().getHours() - new Date(value.pushed_at).getHours()} hour ago`
+    } else if (differenceInDays < 31) {
+      return `Updated ${new Date().getDate() - new Date(value.pushed_at).getDate()} days ago`
+    } else {
+      return `Updated on ${moment(value.pushed_at).format('MMMM D, YYYY')}`
     }
   }
 
@@ -45,10 +66,10 @@ function App() {
                   <div className="card-text mb-3">
                     <Row>
                       <Col md={3}>
-                        {val.language}
+                        {val.language || '-'}
                       </Col>
                       <Col md={9}>
-                        {val.updated_at}
+                        {updated(val)}
                       </Col>
                     </Row>
                   </div>
@@ -57,7 +78,7 @@ function App() {
                   </Button>
                 </CardBody>
                 <CardFooter>
-                  Created {val.created_at}
+                  Created {moment(val.created_at).format('D MMMM YYYY')}
                 </CardFooter>
               </Card>
             </Col>

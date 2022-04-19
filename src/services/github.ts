@@ -13,3 +13,11 @@ export const getListRepo = async (params: ParamsTypes) => {
     params
   })
 }
+
+export const getLanguage = async (url: string) => {
+
+  return callAPI({
+    url,
+    method: 'GET'
+  })
+}
