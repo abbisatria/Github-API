@@ -4,6 +4,7 @@ import { getLanguage, getListRepo } from './services/github';
 import moment from 'moment';
 import Loader from './components/loader';
 import useDebounce from './helpers/useDebounce';
+import ColorsLanguage from './helpers/colorsLanguage';
 
 interface DataTypes {
   id: number,
@@ -26,7 +27,6 @@ function App() {
 
   useEffect(() => {
     getData()
-    setIsLoading(false)
   }, []);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ function App() {
 
   const getData = async () => {
     setIsLoading(true);
-    const response = await getListRepo({ sort: 'pushed' })
+    const response = await getListRepo({ sort: 'pushed', page: '1', per_page: '200' })
     if (!response.error) {
       const result: any = await Promise.all(response.data.map(async (val: DataTypes) => {
         if (!val.language) {
@@ -70,9 +70,9 @@ function App() {
       return `Updated ${new Date().getDate() - new Date(value.pushed_at).getDate()} days ago`
     } else {
       if (new Date().getFullYear() === new Date(value.pushed_at).getFullYear()) {
-        return `Updated on ${moment(value.pushed_at).format('MMMM D')}`
+        return `Updated on ${moment(value.pushed_at).format('MMM D')}`
       }
-      return `Updated on ${moment(value.pushed_at).format('MMMM D, YYYY')}`
+      return `Updated on ${moment(value.pushed_at).format('MMM D, YYYY')}`
     }
   }
 
@@ -109,7 +109,8 @@ function App() {
                     </CardTitle>
                     <div className="card-text mb-3">
                       <Row>
-                        <Col md={3}>
+                        <Col md={3} className="d-flex align-items-center">
+                          {val.language && <div className="repo-language-color" style={{ backgroundColor: ColorsLanguage(val.language).color }} />}
                           {val.language || '-'}
                         </Col>
                         <Col md={9}>
@@ -122,7 +123,7 @@ function App() {
                     </Button>
                   </CardBody>
                   <CardFooter>
-                    Created {moment(val.created_at).format('D MMMM YYYY')}
+                    Created {moment(val.created_at).format('MMM D, YYYY')}
                   </CardFooter>
                 </Card>
               </Col>

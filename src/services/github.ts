@@ -2,6 +2,8 @@ import callAPI from './config';
 
 interface ParamsTypes {
   sort: string;
+  page: string;
+  per_page: string;
 }
 
 export const getListRepo = async (params: ParamsTypes) => {
