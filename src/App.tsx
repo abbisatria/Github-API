@@ -3,6 +3,7 @@ import { Container, Input, Row, Col, Card, CardBody, CardTitle, Button, CardFoot
 import { getLanguage, getListRepo } from './services/github';
 import moment from 'moment';
 import Loader from './components/loader';
+import useDebounce from './helpers/useDebounce';
 
 interface DataTypes {
   id: number,
@@ -19,10 +20,24 @@ function App() {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const debounceSearch = useDebounce(search, 500);
 
   useEffect(() => {
     getData()
+    setIsLoading(false)
   }, []);
+
+  useEffect(() => {
+    if (debounceSearch) {
+      setIsLoading(true)
+      setTimeout(() => {
+        setIsLoading(false)
+        setPage(1)
+      }, 500)
+    }
+  }, [debounceSearch]);
 
   const getData = async () => {
     setIsLoading(true);
@@ -66,13 +81,13 @@ function App() {
     setTimeout(() => {
       setPage(page);
       setIsLoading(false);
-    }, 2000);
+    }, 500);
   };
 
   const indexOfLastPost = page * 6;
   const indexOfFirstPost = indexOfLastPost - 6;
-  const currentPosts = data.slice(indexOfFirstPost, indexOfLastPost);
-  const totalPages = Math.ceil(data.length / 6);
+  const currentPosts = debounceSearch ? data.filter((val: DataTypes) => val.name.toLowerCase().includes(search.toLowerCase())).slice(indexOfFirstPost, indexOfLastPost) : data.slice(indexOfFirstPost, indexOfLastPost);
+  const totalPages = debounceSearch ? Math.ceil(data.filter((val: DataTypes) => val.name.toLowerCase().includes(search.toLowerCase())).length / 6) : Math.ceil(data.length / 6);
 
   return (
     <>
@@ -80,7 +95,7 @@ function App() {
       <Container className="py-5">
         <Row className="mb-3">
           <Col md={4}>
-            <Input placeholder="Search..." />
+            <Input placeholder="Search..." onChange={(e) => setSearch(e.target.value)} />
           </Col>
         </Row>
         <Row>
